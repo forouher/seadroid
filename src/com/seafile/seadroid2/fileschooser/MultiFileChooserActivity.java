@@ -119,13 +119,8 @@ OnBackStackChangedListener {
         for (int i = 0; i < mSelectedFiles.size(); ++i) {
             file = mSelectedFiles.get(i);
             uri = Uri.fromFile(file);
-            try {
-                path = Utils.getPath(this, uri);
-                paths[i] = path;
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                return;
-            }
+            path = Utils.getPath(this, uri);
+            paths[i] = path;
 
         }
 
