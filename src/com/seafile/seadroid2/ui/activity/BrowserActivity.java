@@ -883,12 +883,7 @@ public class BrowserActivity extends SherlockFragmentActivity
 
                 Uri uri = data.getData();
                 String path;
-                try {
-                    path = Utils.getPath(this, uri);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                    return;
-                }
+                path = Utils.getPath(this, uri);
                 if(path == null) {
                     ToastUtils.show(this, "Unable to upload, no path available");
                     Log.i(DEBUG_TAG, "Pick file request did not return a path");
