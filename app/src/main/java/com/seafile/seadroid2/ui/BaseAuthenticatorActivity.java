@@ -2,6 +2,7 @@ package com.seafile.seadroid2.ui;
 
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
+import android.app.Activity;
 import android.os.Bundle;
 
 import com.seafile.seadroid2.ui.activity.BaseActivity;
@@ -20,7 +21,7 @@ import com.seafile.seadroid2.ui.activity.BaseActivity;
  * is never set or if it is set to null then error {@link AccountManager#ERROR_CODE_CANCELED}
  * will be called on the response.
  */
-public class BaseAuthenticatorActivity extends BaseActivity {
+public class BaseAuthenticatorActivity extends Activity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mResultBundle = null;
 

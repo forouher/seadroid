@@ -1,5 +1,6 @@
 package com.seafile.seadroid2.account.ui;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +45,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
-public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMenuItemClickListener {
+public class AccountDetailActivity extends Activity implements Toolbar.OnMenuItemClickListener {
     private static final String DEBUG_TAG = "AccountDetailActivity";
 
     private static final String HTTP_PREFIX = "http://";
@@ -123,11 +124,13 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
             int prefixLen = HTTP_PREFIX.length();
             serverText.setSelection(prefixLen, prefixLen);
         }
+/*
         Toolbar toolbar = getActionBarToolbar();
         toolbar.setOnMenuItemClickListener(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.login);
+         */
         Log.d(DEBUG_TAG, "onCreate finished");
 
     }
@@ -387,7 +390,7 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
                     }
                 });
                 Log.d(DEBUG_TAG, "LoginTask::onPostExecute showing dialog");
-                dialog.show(getSupportFragmentManager(), SslConfirmDialog.FRAGMENT_TAG);
+                //dialog.show(getSupportFragmentManager(), SslConfirmDialog.FRAGMENT_TAG);
                 return;
             }
 

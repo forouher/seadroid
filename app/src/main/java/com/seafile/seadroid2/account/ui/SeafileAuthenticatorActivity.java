@@ -101,7 +101,7 @@ public class SeafileAuthenticatorActivity extends BaseAuthenticatorActivity {
             startActivityForResult(intent, SeafileAuthenticatorActivity.REQ_SIGNUP);
         }
 
-        Toolbar toolbar = getActionBarToolbar();
+/*        Toolbar toolbar = getActionBarToolbar();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.choose_server);
@@ -112,6 +112,7 @@ public class SeafileAuthenticatorActivity extends BaseAuthenticatorActivity {
                 navigateUpOrBack(SeafileAuthenticatorActivity.this, null);
             }
         });
+*/
         Log.d(DEBUG_TAG, "onCreate finished");
 
     }
