@@ -123,11 +123,13 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
             int prefixLen = HTTP_PREFIX.length();
             serverText.setSelection(prefixLen, prefixLen);
         }
+        /*
         Toolbar toolbar = getActionBarToolbar();
         toolbar.setOnMenuItemClickListener(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.login);
+        */
         Log.d(DEBUG_TAG, "onCreate finished");
 
     }
@@ -389,6 +391,7 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
             if (result != null && result.equals("Success")) {
                 Log.d(DEBUG_TAG, "LoginTask::onPostExecute success");
 
+                // BUG start here?
                 Intent retData = new Intent();
                 retData.putExtras(getIntent());
                 retData.putExtra(android.accounts.AccountManager.KEY_ACCOUNT_NAME, loginAccount.getSignature());
@@ -397,13 +400,18 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
                 retData.putExtra(SeafileAuthenticatorActivity.ARG_EMAIL, loginAccount.getEmail());
                 retData.putExtra(SeafileAuthenticatorActivity.ARG_SERVER_URI, loginAccount.getServer());
 
+                Log.d(DEBUG_TAG, "LoginTask::onPostExecute setResult: "+retData.getExtras());
                 setResult(RESULT_OK, retData);
+                // BUG end here?
+                Log.d(DEBUG_TAG, "LoginTask::onPostExecute finish");
                 finish();
             } else {
                 Log.d(DEBUG_TAG, "LoginTask::onPostExecute else");
                 statusView.setText(result);
             }
+            Log.d(DEBUG_TAG, "LoginTask::onPostExecute enable button");
             loginButton.setEnabled(true);
+            Log.d(DEBUG_TAG, "LoginTask::onPostExecute exit");
         }
 
         private String doLogin() {
