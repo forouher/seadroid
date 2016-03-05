@@ -108,6 +108,7 @@ public class SeafileAuthenticatorActivity extends BaseAuthenticatorActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d(DEBUG_TAG, "navigateUpOrBack");
                 navigateUpOrBack(SeafileAuthenticatorActivity.this, null);
             }
         });
@@ -117,7 +118,10 @@ public class SeafileAuthenticatorActivity extends BaseAuthenticatorActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(DEBUG_TAG, "onActivityResult");
+        Log.d(DEBUG_TAG, "onActivityResult: "+data);
+        if (data != null) {
+            Log.d(DEBUG_TAG, "onActivityResult data: "+data.getExtras());
+        }
 
         // The sign up activity returned that the user has successfully created an account
         if (requestCode == REQ_SIGNUP && resultCode == RESULT_OK) {
