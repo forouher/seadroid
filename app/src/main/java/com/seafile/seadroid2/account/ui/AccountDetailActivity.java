@@ -161,6 +161,12 @@ public class AccountDetailActivity extends BaseActivity implements Toolbar.OnMen
     }
 
     @Override
+    public void onBackPressed() {
+        Log.d(DEBUG_TAG, "onBackPressed");
+        super.onBackPressed();
+    }
+
+    @Override
     public boolean onMenuItemClick(MenuItem item) {
         Log.d(DEBUG_TAG, "onMenuItemClick");
         return false;
