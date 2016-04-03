@@ -3,6 +3,7 @@ package com.seafile.seadroid2.account;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.accounts.OnAccountsUpdateListener;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -40,6 +41,14 @@ public class AccountManager {
 
         // migrate old accounts
         AccountDBHelper.migrateAccounts(context);
+    }
+
+    public void addAccountListener(OnAccountsUpdateListener listener) {
+        accountManager.addOnAccountsUpdatedListener(listener, null, false);
+    }
+
+    public void removeAccountListener(OnAccountsUpdateListener listener) {
+        accountManager.removeOnAccountsUpdatedListener(listener);
     }
 
     public List<Account> getAccountList() {

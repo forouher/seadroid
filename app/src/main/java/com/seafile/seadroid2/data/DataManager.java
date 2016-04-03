@@ -298,6 +298,32 @@ public class DataManager {
         return new File(localPath);
     }
 
+    /**
+     * Lookup the SeafCachedFile DB entry for a locally cached file.
+     *
+     * @param localFile
+     * @return the database entry or null, if not found
+     */
+    public SeafCachedFile lookupSeafCachedFile(File localFile) {
+        String path = localFile.getAbsolutePath();
+
+        List<SeafRepo> repoList = this.getReposFromCache();
+        if (repoList == null)
+            return null;
+
+        // find repository that contains this file
+        for (SeafRepo repo: repoList) {
+            String repoDir = getRepoDir(repo.getName(), repo.getID());
+
+            if (path.startsWith(repoDir)) {
+                String repoPath = path.substring(repoDir.length());
+                String repoID = repo.getID();
+                return dbHelper.getFileCacheItem(repoID, repoPath, this);
+            }
+        }
+        return null;
+    }
+
     private List<SeafRepo> parseRepos(String json) {
         try {
             // may throw ClassCastException
@@ -558,10 +584,6 @@ public class DataManager {
         return cf;
     }
     
-    public List<SeafCachedFile> getCachedFiles() {
-        return dbHelper.getFileCacheItems(this);
-    }
-
     public void addCachedFile(String repoName, String repoID, String path, String fileID, File file) {
         // notify Android Gallery that a new file has appeared
 

@@ -8,8 +8,8 @@ import java.util.Set;
 import android.os.Handler;
 import android.util.Log;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.seafile.seadroid2.data.DataManager;
 import com.seafile.seadroid2.util.ConcurrentAsyncTask;
 import com.seafile.seadroid2.SeafException;
 import com.seafile.seadroid2.account.Account;
@@ -20,13 +20,10 @@ import com.seafile.seadroid2.util.Utils;
 /**
  * Update modified files, retry until success
  */
-public class AutoUpdateManager implements Runnable, CachedFileChangedListener {
+public class AutoUpdateManager implements CachedFileChangedListener {
     private static final String DEBUG_TAG = "AutoUpdateManager";
-    private static final int CHECK_INTERVAL_MILLI = 3000;
 
     private TransferService txService;
-    private Thread thread;
-    private volatile boolean running;
     private final Handler mHandler = new Handler();
 
     private Set<AutoUpdateInfo> infos = Sets.newHashSet();
@@ -34,21 +31,25 @@ public class AutoUpdateManager implements Runnable, CachedFileChangedListener {
 
     public void onTransferServiceConnected(TransferService txService) {
         this.txService = txService;
-        running = true;
-        thread = new Thread(this);
-        thread.start();
-    }
 
-    public void stop() {
-        running = false;
+        // TODO: this was happening in another thread
+        synchronized (infos) {
+            infos.addAll(db.getAutoUploadInfos());
+        }
     }
 
     /**
      * This method is called by file monitor, so it would be executed in the file monitor thread
      */
     @Override
-    public void onCachedFileChanged(final Account account, final SeafCachedFile cachedFile, final File localFile) {
-        addTask(account, cachedFile, localFile);
+    public void onCachedFileChanged(final Account account, final File localFile) {
+        Log.d(DEBUG_TAG, "onCachedFileChanged for "+localFile);
+        DataManager dataManager = new DataManager(account);
+        final SeafCachedFile cachedFile = dataManager.lookupSeafCachedFile(localFile);
+        if (cachedFile != null)
+            addTask(account, cachedFile, localFile);
+        else
+            Log.d(DEBUG_TAG, "onCachedFileChanged not found in data base, ignoring file");
     }
 
     public void addTask(Account account, SeafCachedFile cachedFile, File localFile) {
@@ -110,7 +111,7 @@ public class AutoUpdateManager implements Runnable, CachedFileChangedListener {
 
     private boolean removeAutoUpdateInfo(Account account, String repoID, String repoName, String parentDir, String localPath) {
         final AutoUpdateInfo info = new AutoUpdateInfo(account, repoID, repoName, parentDir, localPath);
-        boolean exist = false;
+        boolean exist;
 
         synchronized (infos) {
             exist = infos.remove(info);
@@ -125,50 +126,5 @@ public class AutoUpdateManager implements Runnable, CachedFileChangedListener {
             });
         }
         return exist;
-    }
-
-    /**
-     * Periodically checks the upload tasks and schedule them to run
-     **/
-    private void scheduleUpdateTasks() {
-        int size = infos.size();
-        if (!Utils.isNetworkOn()) {
-            Log.d(DEBUG_TAG, "network is not available, " + size + " in queue");
-            return;
-        }
-
-        if (txService == null) {
-            return;
-        }
-
-        Log.v(DEBUG_TAG, String.format("check auto upload tasks, %d in queue", size));
-
-        List<AutoUpdateInfo> infosList;
-        synchronized (infos) {
-            if (infos.isEmpty()) {
-                return;
-            }
-            infosList = ImmutableList.copyOf(infos);
-        }
-
-        addAllUploadTasks(infosList);
-    }
-
-    public void run() {
-        synchronized (infos) {
-            infos.addAll(db.getAutoUploadInfos());
-        }
-
-        while (running) {
-            scheduleUpdateTasks();
-            if (!running) {
-                break;
-            }
-            try {
-                Thread.sleep(CHECK_INTERVAL_MILLI);
-            } catch (final InterruptedException ignored) {
-                break;
-            }
-        }
     }
 }

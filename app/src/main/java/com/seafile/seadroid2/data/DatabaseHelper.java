@@ -251,39 +251,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         database.delete(FILECACHE_TABLE_NAME, FILECACHE_COLUMN_ACCOUNT + "=?", new String[]{signature});
     }
 
-    public List<SeafCachedFile> getFileCacheItems(DataManager dataManager) {
-        List<SeafCachedFile> files = Lists.newArrayList();
-
-        String[] projection = {
-                FILECACHE_COLUMN_ID,
-                FILECACHE_COLUMN_FILEID,
-                FILECACHE_COLUMN_REPO_NAME,
-                FILECACHE_COLUMN_REPO_ID,
-                FILECACHE_COLUMN_PATH,
-                FILECACHE_COLUMN_ACCOUNT
-        };
-
-        Cursor c = database.query(
-             FILECACHE_TABLE_NAME,
-             projection,
-             FILECACHE_COLUMN_ACCOUNT + "=?",
-             new String[] { dataManager.getAccount().getSignature() },
-             null,   // don't group the rows
-             null,   // don't filter by row groups
-             null    // The sort order
-        );
-
-        c.moveToFirst();
-        while (!c.isAfterLast()) {
-            SeafCachedFile item = cursorToFileCacheItem(c, dataManager);
-            files.add(item);
-            c.moveToNext();
-        }
-
-        c.close();
-        return files;
-    }
-
     private SeafCachedFile cursorToFileCacheItem(Cursor cursor, DataManager dataManager) {
         SeafCachedFile item = new SeafCachedFile();
         item.id = cursor.getInt(0);

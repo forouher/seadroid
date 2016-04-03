@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.seafile.seadroid2.cameraupload.MediaObserverService;
+import com.seafile.seadroid2.monitor.FileMonitorService;
 
 /**
  * This receiver is called whenever the system has booted or
@@ -27,6 +28,9 @@ public class BootAutostart extends BroadcastReceiver {
 
         Intent mediaObserver = new Intent(context, MediaObserverService.class);
         context.startService(mediaObserver);
+
+        Intent monitorIntent = new Intent(context, FileMonitorService.class);
+        context.startService(monitorIntent);
     }
 
 }

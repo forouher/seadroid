@@ -1,5 +1,6 @@
 package com.seafile.seadroid2.monitor;
 
+import android.accounts.OnAccountsUpdateListener;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -12,20 +13,24 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.seafile.seadroid2.account.AccountManager;
 import com.seafile.seadroid2.util.ConcurrentAsyncTask;
 import com.seafile.seadroid2.account.Account;
 import com.seafile.seadroid2.transfer.*;
 
+import java.io.File;
+
 /**
  * Monitor changes of local cached files, and upload them through TransferService if modified
  */
-public class FileMonitorService extends Service {
+public class FileMonitorService extends Service implements OnAccountsUpdateListener {
     private static final String DEBUG_TAG = "FileMonitorService";
 
     private SeafileMonitor monitor;
     private TransferService mTransferService;
     private AutoUpdateManager updateMgr = new AutoUpdateManager();
     private final IBinder mBinder = new MonitorBinder();
+    private AccountManager accountManager;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -33,16 +38,17 @@ public class FileMonitorService extends Service {
 
         if (monitor == null) {
             monitor = new SeafileMonitor(updateMgr);
+            monitor.start();
         }
 
-        ConcurrentAsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                monitor.monitorAllAccounts();
-            }
-        });
-
         return START_STICKY;
+    }
+
+    @Override
+    public void onAccountsUpdated(android.accounts.Account[] accounts) {
+        // accounts were added/removed/renamed, restart monitor
+        monitor.stop();
+        monitor.start();
     }
 
     public class MonitorBinder extends Binder {
@@ -66,13 +72,16 @@ public class FileMonitorService extends Service {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(transferReceiver,
                 new IntentFilter(TransferManager.BROADCAST_ACTION));
+
+        accountManager = new AccountManager(this);
+        accountManager.addAccountListener(this);
     }
 
     @Override
     public void onDestroy() {
         Log.d(DEBUG_TAG, "onDestroy");
 
-        updateMgr.stop();
+        accountManager.removeAccountListener(this);
 
         if (monitor != null) {
             try {
@@ -88,11 +97,6 @@ public class FileMonitorService extends Service {
         }
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(transferReceiver);
-    }
-
-    public void removeAccount(Account account) {
-        Log.d(DEBUG_TAG, account.email);
-        monitor.stopMonitorFilesForAccount(account);
     }
 
     private ServiceConnection mTransferConnection = new ServiceConnection() {
@@ -128,10 +132,7 @@ public class FileMonitorService extends Service {
                 int taskID = intent.getIntExtra("taskID", 0);
                 DownloadTaskInfo info = mTransferService.getDownloadTaskInfo(taskID);
                 if (info != null) {
-                    if (monitor.isStarted()) {
-                        monitor.onFileDownloaded(info.account, info.repoID, info.repoName,
-                                info.pathInRepo, info.localFilePath);
-                    }
+                    monitor.onFileDownloaded(new File(info.localFilePath));
                 }
             } else if (type.equals(UploadTaskManager.BROADCAST_FILE_UPLOAD_SUCCESS)) {
                 int taskID = intent.getIntExtra("taskID", 0);

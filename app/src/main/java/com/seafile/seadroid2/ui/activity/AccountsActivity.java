@@ -6,10 +6,6 @@ import android.accounts.OnAccountsUpdateListener;
 import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -32,7 +28,6 @@ import com.seafile.seadroid2.account.AccountManager;
 import com.seafile.seadroid2.account.Authenticator;
 import com.seafile.seadroid2.avatar.Avatar;
 import com.seafile.seadroid2.avatar.AvatarManager;
-import com.seafile.seadroid2.monitor.FileMonitorService;
 import com.seafile.seadroid2.ui.adapter.AccountAdapter;
 import com.seafile.seadroid2.ui.adapter.SeafAccountAdapter;
 import com.seafile.seadroid2.util.Utils;
@@ -53,7 +48,6 @@ public class AccountsActivity extends BaseActivity implements Toolbar.OnMenuItem
     private AvatarManager avatarManager;
     private AccountAdapter adapter;
     private List<Account> accounts;
-    private FileMonitorService mMonitorService;
     private Account currentDefaultAccount;
 
     private OnAccountsUpdateListener accountsUpdateListener = new OnAccountsUpdateListener() {
@@ -61,21 +55,6 @@ public class AccountsActivity extends BaseActivity implements Toolbar.OnMenuItem
         public void onAccountsUpdated(android.accounts.Account[] accounts) {
             refreshView();
         }
-    };
-
-    private ServiceConnection mMonitorConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder binder) {
-            FileMonitorService.MonitorBinder monitorBinder = (FileMonitorService.MonitorBinder)binder;
-            mMonitorService = monitorBinder.getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-            mMonitorService = null;
-        }
-
     };
 
     @Override
@@ -137,8 +116,6 @@ public class AccountsActivity extends BaseActivity implements Toolbar.OnMenuItem
     public void onStart() {
         Log.d(DEBUG_TAG, "onStart");
         super.onStart();
-        Intent bIntent = new Intent(this, FileMonitorService.class);
-        bindService(bIntent, mMonitorConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -151,10 +128,6 @@ public class AccountsActivity extends BaseActivity implements Toolbar.OnMenuItem
     protected void onDestroy() {
         Log.d(DEBUG_TAG, "onDestroy");
         super.onDestroy();
-        if (mMonitorService != null) {
-            unbindService(mMonitorConnection);
-            mMonitorService = null;
-        }
         mAccountManager.removeOnAccountsUpdatedListener(accountsUpdateListener);
     }
 
@@ -279,9 +252,6 @@ public class AccountsActivity extends BaseActivity implements Toolbar.OnMenuItem
             Log.d(DEBUG_TAG, "removing account "+account);
             mAccountManager.removeAccount(account.getAndroidAccount(), null, null);
 
-            if (mMonitorService != null) {
-                mMonitorService.removeAccount(account);
-            }
             return true;
         default:
             return super.onContextItemSelected(item);
