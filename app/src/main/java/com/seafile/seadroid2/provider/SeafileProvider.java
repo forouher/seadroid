@@ -642,57 +642,6 @@ public class SeafileProvider extends DocumentsProvider {
     }
 
     /**
-     * Load a file from the Seafile server.
-     *
-     * This might take a while, therefore we have to listen to the CancellationSignal and abort
-     * if it says so.
-     *
-     * @param signal CancellationSignal
-     * @param dm DataManager object belonging to the seafile account, where the file lies
-     * @param repo The repository where the file lies
-     * @param path File path
-     * @return
-     * @throws FileNotFoundException
-     */
-    private static File getFile(final CancellationSignal signal,
-                                DataManager dm, 
-                                SeafRepo repo, 
-                                String path)
-            throws FileNotFoundException {
-
-        try {
-            // fetch the file from the Seafile server.
-            File f = dm.getFile(repo.getName(), repo.getID(), path, new ProgressMonitor() {
-                @Override
-                public void onProgressNotify(long total) {
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    // cancel the download if the client has lost interest.
-                    if (signal != null)
-                        return signal.isCanceled();
-                    else
-                        return false;
-                }
-            });
-
-            if (f == null) {
-                throw new FileNotFoundException();
-            }
-
-            if (f.isDirectory()) {
-                throw new FileNotFoundException();
-            }
-
-            return f;
-
-        } catch (SeafException e) {
-            throw new FileNotFoundException();
-        }
-    }
-
-    /**
      * Add a cursor entry for the account root.
      *
      * We don't know much about it.
